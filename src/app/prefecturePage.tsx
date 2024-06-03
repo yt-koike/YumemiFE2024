@@ -175,7 +175,7 @@ export function PrefecturePage() {
       </div>
     );
   }
-  function widthTable(w: number, items: []) {
+  function widthTable(w: number, items: JSX.Element[]):JSX.Element[] {
     const h = Math.ceil(items.length / w);
     const li = [];
     var key = 0;
