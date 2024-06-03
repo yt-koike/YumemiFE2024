@@ -157,7 +157,7 @@ export function PrefecturePage() {
   const [apiKey, setApiKey] = useState<string>("");
   const [isCheckedAry, setChecked] = useState<boolean[]>([]);
   const [prefectures, setPrefectures] = useState<Prefecture[]>([]);
-  const [popRecord, setPopRecord] = useState<(PopulationRecord | undefined)[]>(
+  const [popRecord, setPopRecord] = useState<(PopulationRecord)[]>(
     []
   );
   function InputBox(id: number, isChecked: boolean, title: string) {
