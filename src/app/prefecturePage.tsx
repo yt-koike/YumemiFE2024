@@ -192,7 +192,7 @@ export function PrefecturePage() {
   }
 
   useEffect(() => {
-    if (apiKey == undefined) {
+    if (apiKey === "") {
       setPrefectures(prefecturesData);
       setPopRecord(pop);
       setChecked(prefecturesData.map((_) => false));
