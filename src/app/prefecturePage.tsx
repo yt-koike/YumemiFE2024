@@ -282,7 +282,6 @@ export function PrefecturePage() {
           )}
         </tbody>
       </table>
-      <p>Hello!{isCheckedAry.map((c, i) => c && prefectures[i].prefName)}</p>
       {isCheckedAry.map((c, i) =>
         c && popRecord[i] != undefined ? (
           GraphDraw(prefectures[i].prefName, "人口", popRecord[i])
