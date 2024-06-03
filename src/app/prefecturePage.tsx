@@ -114,7 +114,7 @@ function GraphDraw(
 ) {
   const tickInterval = lcd(
     popRecords.map((popRecord) =>
-      lcd(popRecord.data.map((p) => lcd(p.data.map((x) => x.value))))
+      lcd(popRecord.data.map((p) => lcd(p.data.map((x) => x.year))))
     )
   );
   const seriesBunch = popRecords.map((popRecord,popRecordIdx) => {
