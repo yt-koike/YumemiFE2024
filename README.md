@@ -1,3 +1,9 @@
+# 都道府県総人口表示サイト
+
+- 株式会社ゆめみ様のフロントエンドコーディング試験です。
+- [課題サイト](https://yumemi.notion.site/0e9ef27b55704d7882aab55cc86c999d)
+- [デプロイ先](https://yt-koike.github.io/YumemiFE2024/)
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
