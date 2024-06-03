@@ -13,7 +13,6 @@ import HighchartsReact from "highcharts-react-official";
 import { Prefecture, pop, PopulationRecord, prefecturesData } from "./prefData";
 require("dotenv").config();
 
-const apiKey = process.env.RESAS_API_KEY;
 class CheckBox {
   id: number;
   title: string;
@@ -143,17 +142,19 @@ function View(
   popRecord: PopulationRecord[]
 ) {}
 
-async function fetchPopulation(prefCode: number) {
+async function fetchPopulation(apiKey: string, prefCode: number) {
   const response = await fetch(
     "https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?cityCode=-&prefCode=" +
       prefCode.toString(),
-    { headers: { "X-API-KEY": apiKey} }
-  )
+    { headers: { "X-API-KEY": apiKey } }
+  );
   const population = await response.json().then((json) => json.result);
   return population;
 }
 
 export function PrefecturePage() {
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [apiKey, setApiKey] = useState<string>("");
   const [isCheckedAry, setChecked] = useState<boolean[]>([]);
   const [prefectures, setPrefectures] = useState<Prefecture[]>([]);
   const [popRecord, setPopRecord] = useState<(PopulationRecord | undefined)[]>(
@@ -190,10 +191,11 @@ export function PrefecturePage() {
   }
 
   useEffect(() => {
-    if (apiKey == undefined) {
+    if (apiKey === "") {
       setPrefectures(prefecturesData);
       setPopRecord(pop);
       setChecked(prefecturesData.map((_) => false));
+      setIsLoaded(true);
       return;
     }
     fetch("https://opendata.resas-portal.go.jp/api/v1/prefectures", {
@@ -204,20 +206,25 @@ export function PrefecturePage() {
       .then((response) => response.json())
       .then((json) => {
         setPrefectures(json.result);
+        setIsLoaded(true);
       })
-      .catch((e) => alert(e));
-   
-  }, []);
+      .catch((e) => {
+        alert(e);
+        setIsLoaded(false);
+      });
+  }, [apiKey]);
   useEffect(() => {
+    if (prefectures == undefined) return;
     setChecked(prefectures.map((_) => false));
-    prefectures.map((pref,idx)=>
-      fetchPopulation(pref.prefCode).then((pop) => {
+    prefectures.map((pref, idx) =>
+      fetchPopulation(apiKey, pref.prefCode).then((pop) => {
         setPopRecord((popRecord) => {
           const newPopRecord = [...popRecord];
           newPopRecord[idx] = pop;
           return newPopRecord;
         });
-      }));
+      })
+    );
     /*
     setPopRecord(prefectures.map((_) => undefined));
     function fetchAllPopulation(prefCodes: number[]) {
@@ -239,11 +246,32 @@ export function PrefecturePage() {
     const prefCodes = prefectures.map((p) => p.prefCode);
     fetchAllPopulation(prefCodes);
     */
-  }, [prefectures]);
+  }, [apiKey, prefectures]);
 
-  if (prefectures == undefined || prefectures.length == 0) return <></>;
+  if (prefectures == undefined || prefectures.length == 0 || !isLoaded)
+    return (
+      <div>
+        <p>
+          ApiKey:
+          <input
+            type="text"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+          ></input>
+        </p>
+        <p>読み込みに失敗しました．正しい API Key を入力してください．</p>
+      </div>
+    );
   return (
     <div>
+      <p>
+        ApiKey:
+        <input
+          type="text"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+        ></input>
+      </p>
       <table>
         <tbody>
           {widthTable(
@@ -255,7 +283,13 @@ export function PrefecturePage() {
         </tbody>
       </table>
       <p>Hello!{isCheckedAry.map((c, i) => c && prefectures[i].prefName)}</p>
-      {isCheckedAry.map((c,i)=>(c && popRecord[i] != undefined)? GraphDraw(prefectures[i].prefName, "人口", popRecord[i]):<></>)}
+      {isCheckedAry.map((c, i) =>
+        c && popRecord[i] != undefined ? (
+          GraphDraw(prefectures[i].prefName, "人口", popRecord[i])
+        ) : (
+          <></>
+        )
+      )}
     </div>
   );
 }
