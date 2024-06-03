@@ -109,23 +109,30 @@ function lcd(xs: number[]): number {
 function GraphDraw(
   title: string,
   yAxisTitle: string,
-  popRecord: PopulationRecord
+  prefectures: Prefecture[],
+  popRecords: PopulationRecord[]
 ) {
-  const pop = popRecord.data;
-  const series = pop.map((p) => {
-    return {
+  const tickInterval = lcd(
+    popRecords.map((popRecord) =>
+      lcd(popRecord.data.map((p) => lcd(p.data.map((x) => x.value))))
+    )
+  );
+  const seriesBunch = popRecords.map((popRecord,popRecordIdx) => {
+    const pop = popRecord.data[0];
+    const series = {
       type: "line",
-      name: p.label,
-      data: p.data.map((x) => [x.year, x.value]),
+      name: prefectures[popRecordIdx].prefName,
+      data: pop.data.map((x) => [x.year, x.value]),
     } as Highcharts.SeriesOptionsType;
+    return series;
   });
   const options: Highcharts.Options = {
     title: {
       text: title,
     },
-    series: series,
+    series: seriesBunch,
     xAxis: {
-      tickInterval: lcd(pop[0].data.map((x) => x.year)),
+      tickInterval: tickInterval,
     },
     yAxis: {
       title: yAxisTitle,
@@ -157,9 +164,7 @@ export function PrefecturePage() {
   const [apiKey, setApiKey] = useState<string>("");
   const [isCheckedAry, setChecked] = useState<boolean[]>([]);
   const [prefectures, setPrefectures] = useState<Prefecture[]>([]);
-  const [popRecord, setPopRecord] = useState<(PopulationRecord)[]>(
-    []
-  );
+  const [popRecords, setPopRecord] = useState<PopulationRecord[]>([]);
   function InputBox(id: number, isChecked: boolean, title: string) {
     return (
       <div>
@@ -175,7 +180,7 @@ export function PrefecturePage() {
       </div>
     );
   }
-  function widthTable(w: number, items: JSX.Element[]):JSX.Element[] {
+  function widthTable(w: number, items: JSX.Element[]): JSX.Element[] {
     const h = Math.ceil(items.length / w);
     const li = [];
     var key = 0;
@@ -262,6 +267,8 @@ export function PrefecturePage() {
         <p>読み込みに失敗しました．正しい API Key を入力してください．</p>
       </div>
     );
+  const selectedPrefectures = prefectures.filter((p, i) => isCheckedAry[i]);
+  const selectedPopRecords = popRecords.filter((p, i) => isCheckedAry[i]);
   return (
     <div>
       <p>
@@ -282,13 +289,7 @@ export function PrefecturePage() {
           )}
         </tbody>
       </table>
-      {isCheckedAry.map((c, i) =>
-        c && popRecord[i] != undefined ? (
-          GraphDraw(prefectures[i].prefName, "人口", popRecord[i])
-        ) : (
-          <></>
-        )
-      )}
+      {GraphDraw("総人口", "人口",selectedPrefectures,selectedPopRecords)}
     </div>
   );
 }
