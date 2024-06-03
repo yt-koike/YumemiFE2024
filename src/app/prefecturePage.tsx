@@ -1,14 +1,19 @@
-"use client";
-
 import {
   ChangeEvent,
   ChangeEventHandler,
+  Component,
   Dispatch,
   SetStateAction,
   useEffect,
+  useRef,
   useState,
 } from "react";
+import Highcharts from "highcharts";
+import HighchartsReact from "highcharts-react-official";
+import { Prefecture, pop, PopulationRecord, prefecturesData } from "./prefData";
+require("dotenv").config();
 
+const apiKey = process.env.RESAS_API_KEY;
 class CheckBox {
   id: number;
   title: string;
@@ -60,7 +65,6 @@ class CheckBoxMan {
       ...this.checkBoxes,
       new CheckBox(this.nextId++, title, isChecked, handler),
     ]);
-    console.log(this.checkBoxes.length)
   }
   searchByTitle(title: string) {
     return this.checkBoxes.filter((c) => c.title === title);
@@ -82,167 +86,176 @@ class CheckBoxMan {
     );
   }
 }
-const prefectures= {
-  "message": null,
-  "result": [{
-      "prefCode": 1,
-      "prefName": "北海道"
-  }, {
-      "prefCode": 2,
-      "prefName": "青森県"
-  }, {
-      "prefCode": 3,
-      "prefName": "岩手県"
-  }, {
-      "prefCode": 4,
-      "prefName": "宮城県"
-  }, {
-      "prefCode": 5,
-      "prefName": "秋田県"
-  }, {
-      "prefCode": 6,
-      "prefName": "山形県"
-  }, {
-      "prefCode": 7,
-      "prefName": "福島県"
-  }, {
-      "prefCode": 8,
-      "prefName": "茨城県"
-  }, {
-      "prefCode": 9,
-      "prefName": "栃木県"
-  }, {
-      "prefCode": 10,
-      "prefName": "群馬県"
-  }, {
-      "prefCode": 11,
-      "prefName": "埼玉県"
-  }, {
-      "prefCode": 12,
-      "prefName": "千葉県"
-  }, {
-      "prefCode": 13,
-      "prefName": "東京都"
-  }, {
-      "prefCode": 14,
-      "prefName": "神奈川県"
-  }, {
-      "prefCode": 15,
-      "prefName": "新潟県"
-  }, {
-      "prefCode": 16,
-      "prefName": "富山県"
-  }, {
-      "prefCode": 17,
-      "prefName": "石川県"
-  }, {
-      "prefCode": 18,
-      "prefName": "福井県"
-  }, {
-      "prefCode": 19,
-      "prefName": "山梨県"
-  }, {
-      "prefCode": 20,
-      "prefName": "長野県"
-  }, {
-      "prefCode": 21,
-      "prefName": "岐阜県"
-  }, {
-      "prefCode": 22,
-      "prefName": "静岡県"
-  }, {
-      "prefCode": 23,
-      "prefName": "愛知県"
-  }, {
-      "prefCode": 24,
-      "prefName": "三重県"
-  }, {
-      "prefCode": 25,
-      "prefName": "滋賀県"
-  }, {
-      "prefCode": 26,
-      "prefName": "京都府"
-  }, {
-      "prefCode": 27,
-      "prefName": "大阪府"
-  }, {
-      "prefCode": 28,
-      "prefName": "兵庫県"
-  }, {
-      "prefCode": 29,
-      "prefName": "奈良県"
-  }, {
-      "prefCode": 30,
-      "prefName": "和歌山県"
-  }, {
-      "prefCode": 31,
-      "prefName": "鳥取県"
-  }, {
-      "prefCode": 32,
-      "prefName": "島根県"
-  }, {
-      "prefCode": 33,
-      "prefName": "岡山県"
-  }, {
-      "prefCode": 34,
-      "prefName": "広島県"
-  }, {
-      "prefCode": 35,
-      "prefName": "山口県"
-  }, {
-      "prefCode": 36,
-      "prefName": "徳島県"
-  }, {
-      "prefCode": 37,
-      "prefName": "香川県"
-  }, {
-      "prefCode": 38,
-      "prefName": "愛媛県"
-  }, {
-      "prefCode": 39,
-      "prefName": "高知県"
-  }, {
-      "prefCode": 40,
-      "prefName": "福岡県"
-  }, {
-      "prefCode": 41,
-      "prefName": "佐賀県"
-  }, {
-      "prefCode": 42,
-      "prefName": "長崎県"
-  }, {
-      "prefCode": 43,
-      "prefName": "熊本県"
-  }, {
-      "prefCode": 44,
-      "prefName": "大分県"
-  }, {
-      "prefCode": 45,
-      "prefName": "宮崎県"
-  }, {
-      "prefCode": 46,
-      "prefName": "鹿児島県"
-  }, {
-      "prefCode": 47,
-      "prefName": "沖縄県"
-  }]
-};
+
+function lcd2(a: number, b: number): number {
+  if (a == 0 || b == 0) return 1;
+  if (a < 0) a = -a;
+  if (b < 0) b = -b;
+  if (a < b) {
+    var tmp = a;
+    a = b;
+    b = tmp;
+  }
+  if (a % b == 0) return b;
+  return lcd2(b, a % b);
+}
+
+function lcd(xs: number[]): number {
+  if (xs.length == 0) return 1;
+  if (xs.length == 1) return xs[0];
+  if (xs.length == 2) return lcd2(xs[0], xs[1]);
+  return lcd([lcd2(xs[0], xs[1])].concat(xs.slice(2)));
+}
+
+function GraphDraw(
+  title: string,
+  yAxisTitle: string,
+  popRecord: PopulationRecord
+) {
+  const pop = popRecord.data;
+  const series = pop.map((p) => {
+    return {
+      type: "line",
+      name: p.label,
+      data: p.data.map((x) => [x.year, x.value]),
+    } as Highcharts.SeriesOptionsType;
+  });
+  const options: Highcharts.Options = {
+    title: {
+      text: title,
+    },
+    series: series,
+    xAxis: {
+      tickInterval: lcd(pop[0].data.map((x) => x.year)),
+    },
+    yAxis: {
+      title: yAxisTitle,
+    } as Highcharts.YAxisOptions,
+  };
+
+  return <HighchartsReact highcharts={Highcharts} options={options} />;
+}
+
+function View(
+  isCheckedAry: boolean[],
+  setChecked: Dispatch<SetStateAction<boolean[]>>,
+  prefectures: Prefecture[],
+  popRecord: PopulationRecord[]
+) {}
+
+async function fetchPopulation(prefCode: number) {
+  const response = await fetch(
+    "https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?cityCode=-&prefCode=" +
+      prefCode.toString(),
+    { headers: { "X-API-KEY": apiKey} }
+  )
+  const population = await response.json().then((json) => json.result);
+  return population;
+}
+
 export function PrefecturePage() {
-  const [checkBoxes, setCheckBoxes] = useState<CheckBox[]>([]);
-  const checkBoxMan = new CheckBoxMan(checkBoxes, setCheckBoxes);
-  useEffect(() => {
-    for (var i = 0; i < 10; i++) {
-      checkBoxMan.newCheckBox(i.toString(), false, (e) => {});
+  const [isCheckedAry, setChecked] = useState<boolean[]>([]);
+  const [prefectures, setPrefectures] = useState<Prefecture[]>([]);
+  const [popRecord, setPopRecord] = useState<(PopulationRecord | undefined)[]>(
+    []
+  );
+  function InputBox(id: number, isChecked: boolean, title: string) {
+    return (
+      <div>
+        <input
+          type="checkbox"
+          value={id}
+          checked={isChecked}
+          onChange={(_) => {
+            setChecked(isCheckedAry.map((c, i) => (id == i ? !c : c)));
+          }}
+        ></input>
+        {title}
+      </div>
+    );
+  }
+  function widthTable(w: number, items: []) {
+    const h = Math.ceil(items.length / w);
+    const li = [];
+    var key = 0;
+    for (var i = 0; i < h; i++) {
+      const row = [];
+      for (var j = 0; j < w; j++) {
+        if (j + i * w >= items.length) break;
+        row.push(<td key={key++}>{items[j + i * w]}</td>);
+      }
+      li.push(<tr key={key++}>{row}</tr>);
     }
-    console.log(checkBoxMan.checkBoxes);
+    return li;
+  }
+
+  useEffect(() => {
+    if (apiKey == undefined) {
+      setPrefectures(prefecturesData);
+      setPopRecord(pop);
+      setChecked(prefecturesData.map((_) => false));
+      return;
+    }
+    fetch("https://opendata.resas-portal.go.jp/api/v1/prefectures", {
+      headers: {
+        "X-API-KEY": apiKey,
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        setPrefectures(json.result);
+      })
+      .catch((e) => alert(e));
+   
   }, []);
+  useEffect(() => {
+    setChecked(prefectures.map((_) => false));
+    prefectures.map((pref,idx)=>
+      fetchPopulation(pref.prefCode).then((pop) => {
+        setPopRecord((popRecord) => {
+          const newPopRecord = [...popRecord];
+          newPopRecord[idx] = pop;
+          return newPopRecord;
+        });
+      }));
+    /*
+    setPopRecord(prefectures.map((_) => undefined));
+    function fetchAllPopulation(prefCodes: number[]) {
+      console.log(prefCodes);
+      var popRecords: Array<any> = [];
+      Promise.all(
+        prefCodes.map((prefCode) =>
+          fetch(
+            "https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?prefCode=" +
+              prefCode.toString(),
+            { headers: { "X-API-KEY": process.env.REACT_API_KEY } }
+          )
+        )
+      )
+        .then((response) => response.map((r) => console.log(r.json())))
+        .catch(alert);
+      return popRecords;
+    }
+    const prefCodes = prefectures.map((p) => p.prefCode);
+    fetchAllPopulation(prefCodes);
+    */
+  }, [prefectures]);
+
+  if (prefectures == undefined || prefectures.length == 0) return <></>;
   return (
     <div>
-      <ol>
-        {checkBoxes.map((c, i) => (
-          <li key={i}>{c.render()}</li>
-        ))}
-      </ol>
+      <table>
+        <tbody>
+          {widthTable(
+            5,
+            prefectures.map((p, i) =>
+              InputBox(i, isCheckedAry[i] ?? false, p.prefName ?? "")
+            )
+          )}
+        </tbody>
+      </table>
+      <p>Hello!{isCheckedAry.map((c, i) => c && prefectures[i].prefName)}</p>
+      {isCheckedAry.map((c,i)=>(c && popRecord[i] != undefined)? GraphDraw(prefectures[i].prefName, "人口", popRecord[i]):<></>)}
     </div>
   );
 }
