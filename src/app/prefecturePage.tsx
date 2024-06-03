@@ -13,7 +13,7 @@ import HighchartsReact from "highcharts-react-official";
 import { Prefecture, pop, PopulationRecord, prefecturesData } from "./prefData";
 require("dotenv").config();
 
-const apiKey = process.env.RESAS_API_KEY;
+const apiKey = process.env.RESAS_API_KEY ?? "";
 class CheckBox {
   id: number;
   title: string;
@@ -144,10 +144,12 @@ function View(
 ) {}
 
 async function fetchPopulation(prefCode: number) {
+  const requestHeaders: HeadersInit = new Headers();
+requestHeaders.set( "X-API-KEY", apiKey);
   const response = await fetch(
     "https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?cityCode=-&prefCode=" +
       prefCode.toString(),
-    { headers: { "X-API-KEY": apiKey} }
+    { headers: requestHeaders}
   )
   const population = await response.json().then((json) => json.result);
   return population;
@@ -206,7 +208,6 @@ export function PrefecturePage() {
         setPrefectures(json.result);
       })
       .catch((e) => alert(e));
-   
   }, []);
   useEffect(() => {
     setChecked(prefectures.map((_) => false));
@@ -218,27 +219,6 @@ export function PrefecturePage() {
           return newPopRecord;
         });
       }));
-    /*
-    setPopRecord(prefectures.map((_) => undefined));
-    function fetchAllPopulation(prefCodes: number[]) {
-      console.log(prefCodes);
-      var popRecords: Array<any> = [];
-      Promise.all(
-        prefCodes.map((prefCode) =>
-          fetch(
-            "https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?prefCode=" +
-              prefCode.toString(),
-            { headers: { "X-API-KEY": process.env.REACT_API_KEY } }
-          )
-        )
-      )
-        .then((response) => response.map((r) => console.log(r.json())))
-        .catch(alert);
-      return popRecords;
-    }
-    const prefCodes = prefectures.map((p) => p.prefCode);
-    fetchAllPopulation(prefCodes);
-    */
   }, [prefectures]);
 
   if (prefectures == undefined || prefectures.length == 0) return <></>;
