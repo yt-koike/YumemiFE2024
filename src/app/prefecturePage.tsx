@@ -230,27 +230,6 @@ export function PrefecturePage() {
         });
       })
     );
-    /*
-    setPopRecord(prefectures.map((_) => undefined));
-    function fetchAllPopulation(prefCodes: number[]) {
-      console.log(prefCodes);
-      var popRecords: Array<any> = [];
-      Promise.all(
-        prefCodes.map((prefCode) =>
-          fetch(
-            "https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?prefCode=" +
-              prefCode.toString(),
-            { headers: { "X-API-KEY": process.env.REACT_API_KEY } }
-          )
-        )
-      )
-        .then((response) => response.map((r) => console.log(r.json())))
-        .catch(alert);
-      return popRecords;
-    }
-    const prefCodes = prefectures.map((p) => p.prefCode);
-    fetchAllPopulation(prefCodes);
-    */
   }, [apiKey, prefectures]);
 
   if (prefectures == undefined || prefectures.length == 0 || !isLoaded)
