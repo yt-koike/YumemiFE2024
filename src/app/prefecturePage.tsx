@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { Prefecture, pop, PopulationRecord, prefecturesData } from "./prefData";
-require("dotenv").config();
 
 function lcd2(a: number, b: number): number {
   if (a == 0 || b == 0) return 1;
@@ -24,23 +23,20 @@ function lcd(xs: number[]): number {
   return lcd([lcd2(xs[0], xs[1])].concat(xs.slice(2)));
 }
 
-function GraphDraw(
-  title: string,
-  yAxisTitle: string,
-  prefectures: Prefecture[],
-  popRecords: PopulationRecord[]
-) {
-  const tickInterval = lcd(
-    popRecords.map((popRecord) =>
-      lcd(popRecord.data.map((p) => lcd(p.data.map((x) => x.value))))
-    )
+type GraphLine = {
+  name: string;
+  xyList: { x: number; y: number }[];
+};
+
+function GraphDraw(title: string, yAxisTitle: string, graphLines: GraphLine[]) {
+  const xTickInterval = lcd(
+    graphLines.map((graphLine) => lcd(graphLine.xyList.map((xy) => xy.x)))
   );
-  const seriesBunch = popRecords.map((popRecord, popRecordIdx) => {
-    const pop = popRecord.data[0];
+  const seriesBunch = graphLines.map((graphLine) => {
     const series = {
       type: "line",
-      name: prefectures[popRecordIdx].prefName,
-      data: pop.data.map((x) => [x.year, x.value]),
+      name: graphLine.name,
+      data: graphLine.xyList,
     } as Highcharts.SeriesOptionsType;
     return series;
   });
@@ -50,7 +46,7 @@ function GraphDraw(
     },
     series: seriesBunch,
     xAxis: {
-      tickInterval: tickInterval,
+      tickInterval: xTickInterval,
     },
     yAxis: {
       title: yAxisTitle,
@@ -161,6 +157,16 @@ export function PrefecturePage() {
     );
   const selectedPrefectures = prefectures.filter((p, i) => isCheckedAry[i]);
   const selectedPopRecords = popRecords.filter((p, i) => isCheckedAry[i]);
+  const graphLines = selectedPrefectures.map(
+    (p, i) =>
+      ({
+        name: p.prefName,
+        xyList: selectedPopRecords[i].data[0].data.map((d) => ({
+          x: d.year,
+          y: d.value,
+        })),
+      } as GraphLine)
+  );
   return (
     <div>
       <p>
@@ -181,7 +187,7 @@ export function PrefecturePage() {
           )}
         </tbody>
       </table>
-      {GraphDraw("総人口", "人口", selectedPrefectures, selectedPopRecords)}
+      {GraphDraw("総人口", "人口", graphLines)}
     </div>
   );
 }
