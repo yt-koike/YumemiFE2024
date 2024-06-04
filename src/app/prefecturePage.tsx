@@ -137,7 +137,7 @@ export function PrefecturePage() {
   }, [apiKey]);
 
   useEffect(() => {
-    // チェックボックスを全て非選択状態
+    // チェックボックスを全て非選択状態にする
     setChecked(prefectures.map((_) => false));
     // 人口データを取得する．
     const newPopRecords = Array<PopulationRecord>(prefectures.length);
@@ -149,7 +149,7 @@ export function PrefecturePage() {
     setPopRecord(newPopRecords);
   }, [apiKey, prefectures]);
 
-  if (prefectures == undefined || prefectures.length == 0 || !isLoaded)
+  if (!isLoaded){
     return (
       <div>
         <p>
@@ -163,6 +163,7 @@ export function PrefecturePage() {
         <p>読み込みに失敗しました．正しい API Key を入力してください．</p>
       </div>
     );
+  }
   const selectedPrefectures = prefectures.filter((p, i) => isCheckedAry[i]);
   const selectedPopRecords = popRecords.filter((p, i) => isCheckedAry[i]);
   const graphLines = selectedPrefectures.map(
