@@ -10,10 +10,11 @@ type Population = {
     rate: number | undefined;
   }[];
 };
+
 type PopulationRecord = {
-  boundaryYear: number,
-  data:Population[],
-}
+  boundaryYear: number;
+  data: Population[];
+};
 
 type Prefecture = {
   prefCode: number;
@@ -33,7 +34,7 @@ function gcd2(a: number, b: number): number {
   return gcd2(b, a % b);
 }
 
-function gcd(xs: number[]): number {
+export function gcd(xs: number[]): number {
   // xs 内全ての整数に関する最大公倍数(Greatest Common Divisor)を返す
   // 空配列なら 1 を返す
   if (xs.length == 0) return 1;
@@ -104,7 +105,7 @@ async function fetchPopulation(apiKey: string, prefCode: number) {
   return population;
 }
 
-function widthTable(w: number, items: JSX.Element[]): JSX.Element[] {
+export function widthTable(w: number, items: JSX.Element[]): JSX.Element[] {
   // 列が w 個ある表内に items を並べる
   // 並べ順: 1 行目を左から埋めていき，w 個並べたら次の行に進む
   const h = Math.ceil(items.length / w);
