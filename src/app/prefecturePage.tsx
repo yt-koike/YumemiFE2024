@@ -67,6 +67,9 @@ async function fetchPrefectures(apiKey: string) {
     "https://opendata.resas-portal.go.jp/api/v1/prefectures",
     { headers: { "X-API-KEY": apiKey } }
   );
+  if (response.status != 200) {
+    throw new Error("fetchPrefectures() couldn't fetch prefectures");
+  }
   const prefectures = await response.json().then((json) => json.result);
   return prefectures;
 }
@@ -78,6 +81,9 @@ async function fetchPopulation(apiKey: string, prefCode: number) {
       prefCode.toString(),
     { headers: { "X-API-KEY": apiKey } }
   );
+  if (response.status != 200) {
+    throw new Error("fetchPopulation() couldn't fetch population");
+  }
   const population = await response.json().then((json) => json.result);
   return population;
 }
@@ -123,20 +129,15 @@ export function PrefecturePage() {
 
   useEffect(() => {
     // 都道府県名を取得
-    if (apiKey === "") {
-      setPrefectures(prefecturesData);
-      setPopRecord(pop);
-      setChecked(prefecturesData.map((_) => false));
-      setIsLoaded(true);
-      return;
-    }
     fetchPrefectures(apiKey)
       .then((prefectures) => {
-        setPrefectures(prefectures);
-        setIsLoaded(true);
+        if (prefectures != undefined && prefectures.length > 0) {
+          setPrefectures(prefectures);
+          setIsLoaded(true);
+        }
       })
       .catch((e) => {
-        alert(e);
+        console.log(e);
         setIsLoaded(false);
       });
   }, [apiKey]);
@@ -165,7 +166,7 @@ export function PrefecturePage() {
             onChange={(e) => setApiKey(e.target.value)}
           ></input>
         </p>
-        <p>読み込みに失敗しました．正しい API Key を入力してください．</p>
+        <p>API Key を入力してください．</p>
       </div>
     );
   }
@@ -183,14 +184,6 @@ export function PrefecturePage() {
   );
   return (
     <div>
-      <p>
-        ApiKey:
-        <input
-          type="text"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-        ></input>
-      </p>
       <table>
         <tbody>
           {widthTable(
