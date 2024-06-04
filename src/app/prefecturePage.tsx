@@ -1,8 +1,24 @@
 import { useEffect, useState } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
-import { Prefecture, pop, PopulationRecord, prefecturesData } from "./prefData";
 
+type Population = {
+  label: string;
+  data: {
+    year: number;
+    value: number;
+    rate: number | undefined;
+  }[];
+};
+type PopulationRecord = {
+  boundaryYear: number,
+  data:Population[],
+}
+
+type Prefecture = {
+  prefCode: number;
+  prefName: string;
+};
 function gcd2(a: number, b: number): number {
   // a と b の最大公倍数(Greatest Common Divisor)を返す
   if (a == 0 || b == 0) return 1;
