@@ -1,90 +1,8 @@
-import {
-  ChangeEvent,
-  ChangeEventHandler,
-  Component,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { Prefecture, pop, PopulationRecord, prefecturesData } from "./prefData";
 require("dotenv").config();
-
-class CheckBox {
-  id: number;
-  title: string;
-  isChecked: boolean;
-  handler: (arg0: ChangeEvent<HTMLInputElement>) => void;
-  constructor(
-    id: number,
-    title: string,
-    isChecked: boolean,
-    handler: (arg0: ChangeEvent<HTMLInputElement>) => void = (e) => isChecked
-  ) {
-    this.id = id;
-    this.title = title;
-    this.isChecked = isChecked;
-    this.handler = handler;
-  }
-  render() {
-    return (
-      <>
-        <input
-          type="checkbox"
-          value={this.id}
-          checked={this.isChecked}
-          onChange={(e) => this.handler(e)}
-        ></input>{" "}
-        {this.title}
-      </>
-    );
-  }
-}
-
-class CheckBoxMan {
-  private nextId: number = 0;
-  checkBoxes: CheckBox[];
-  setCheckBoxes: Dispatch<SetStateAction<CheckBox[]>>;
-  constructor(
-    checkBoxes: CheckBox[],
-    setCheckBoxes: Dispatch<SetStateAction<CheckBox[]>>
-  ) {
-    this.checkBoxes = checkBoxes;
-    this.setCheckBoxes = setCheckBoxes;
-  }
-  newCheckBox(
-    title: string,
-    isChecked: boolean,
-    handler: (arg0: ChangeEvent<HTMLInputElement>) => void
-  ) {
-    this.setCheckBoxes([
-      ...this.checkBoxes,
-      new CheckBox(this.nextId++, title, isChecked, handler),
-    ]);
-  }
-  searchByTitle(title: string) {
-    return this.checkBoxes.filter((c) => c.title === title);
-  }
-  flipChecked(id: number) {
-    this.setCheckBoxes(
-      this.checkBoxes.map((c) =>
-        c.id == id ? new CheckBox(c.id, c.title, !c.isChecked, c.handler) : c
-      )
-    );
-  }
-  render() {
-    return (
-      <ul>
-        {this.checkBoxes.map((c, i) => (
-          <li key={i}>{c.render()}</li>
-        ))}
-      </ul>
-    );
-  }
-}
 
 function lcd2(a: number, b: number): number {
   if (a == 0 || b == 0) return 1;
@@ -117,7 +35,7 @@ function GraphDraw(
       lcd(popRecord.data.map((p) => lcd(p.data.map((x) => x.value))))
     )
   );
-  const seriesBunch = popRecords.map((popRecord,popRecordIdx) => {
+  const seriesBunch = popRecords.map((popRecord, popRecordIdx) => {
     const pop = popRecord.data[0];
     const series = {
       type: "line",
@@ -141,13 +59,6 @@ function GraphDraw(
 
   return <HighchartsReact highcharts={Highcharts} options={options} />;
 }
-
-function View(
-  isCheckedAry: boolean[],
-  setChecked: Dispatch<SetStateAction<boolean[]>>,
-  prefectures: Prefecture[],
-  popRecord: PopulationRecord[]
-) {}
 
 async function fetchPopulation(apiKey: string, prefCode: number) {
   const response = await fetch(
@@ -260,15 +171,14 @@ export function PrefecturePage() {
       </p>
       <table>
         <tbody>
-          {widthTable(
-            5,
+          {widthTable(            5,
             prefectures.map((p, i) =>
               InputBox(i, isCheckedAry[i] ?? false, p.prefName ?? "")
             )
           )}
         </tbody>
       </table>
-      {GraphDraw("総人口", "人口",selectedPrefectures,selectedPopRecords)}
+      {GraphDraw("総人口", "人口", selectedPrefectures, selectedPopRecords)}
     </div>
   );
 }
