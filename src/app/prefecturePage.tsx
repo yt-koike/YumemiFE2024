@@ -128,17 +128,14 @@ export function PrefecturePage() {
   }, [apiKey]);
 
   useEffect(() => {
-    if (prefectures == undefined) return;
     setChecked(prefectures.map((_) => false));
+    const newPopRecords= Array<PopulationRecord>(prefectures.length);
     prefectures.map((pref, idx) =>
       fetchPopulation(apiKey, pref.prefCode).then((pop) => {
-        setPopRecord((popRecord) => {
-          const newPopRecord = [...popRecord];
-          newPopRecord[idx] = pop;
-          return newPopRecord;
-        });
+        newPopRecords[idx] = pop;
       })
     );
+    setPopRecord(newPopRecords);
   }, [apiKey, prefectures]);
 
   if (prefectures == undefined || prefectures.length == 0 || !isLoaded)
