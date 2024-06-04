@@ -70,6 +70,21 @@ async function fetchPopulation(apiKey: string, prefCode: number) {
   return population;
 }
 
+function widthTable(w: number, items: JSX.Element[]): JSX.Element[] {
+  const h = Math.ceil(items.length / w);
+  const li = [];
+  var key = 0;
+  for (var i = 0; i < h; i++) {
+    const row = [];
+    for (var j = 0; j < w; j++) {
+      if (j + i * w >= items.length) break;
+      row.push(<td key={key++}>{items[j + i * w]}</td>);
+    }
+    li.push(<tr key={key++}>{row}</tr>);
+  }
+  return li;
+}
+
 export function PrefecturePage() {
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [apiKey, setApiKey] = useState<string>("");
@@ -90,20 +105,6 @@ export function PrefecturePage() {
         {title}
       </div>
     );
-  }
-  function widthTable(w: number, items: JSX.Element[]): JSX.Element[] {
-    const h = Math.ceil(items.length / w);
-    const li = [];
-    var key = 0;
-    for (var i = 0; i < h; i++) {
-      const row = [];
-      for (var j = 0; j < w; j++) {
-        if (j + i * w >= items.length) break;
-        row.push(<td key={key++}>{items[j + i * w]}</td>);
-      }
-      li.push(<tr key={key++}>{row}</tr>);
-    }
-    return li;
   }
 
   useEffect(() => {
@@ -129,6 +130,7 @@ export function PrefecturePage() {
         setIsLoaded(false);
       });
   }, [apiKey]);
+
   useEffect(() => {
     if (prefectures == undefined) return;
     setChecked(prefectures.map((_) => false));
@@ -171,7 +173,8 @@ export function PrefecturePage() {
       </p>
       <table>
         <tbody>
-          {widthTable(            5,
+          {widthTable(
+            5,
             prefectures.map((p, i) =>
               InputBox(i, isCheckedAry[i] ?? false, p.prefName ?? "")
             )
