@@ -3,7 +3,7 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { Prefecture, pop, PopulationRecord, prefecturesData } from "./prefData";
 
-function lcd2(a: number, b: number): number {
+function gcd2(a: number, b: number): number {
   if (a == 0 || b == 0) return 1;
   if (a < 0) a = -a;
   if (b < 0) b = -b;
@@ -13,14 +13,14 @@ function lcd2(a: number, b: number): number {
     b = tmp;
   }
   if (a % b == 0) return b;
-  return lcd2(b, a % b);
+  return gcd2(b, a % b);
 }
 
-function lcd(xs: number[]): number {
+function gcd(xs: number[]): number {
   if (xs.length == 0) return 1;
   if (xs.length == 1) return xs[0];
-  if (xs.length == 2) return lcd2(xs[0], xs[1]);
-  return lcd([lcd2(xs[0], xs[1])].concat(xs.slice(2)));
+  if (xs.length == 2) return gcd2(xs[0], xs[1]);
+  return gcd([gcd2(xs[0], xs[1])].concat(xs.slice(2)));
 }
 
 type GraphLine = {
@@ -29,8 +29,8 @@ type GraphLine = {
 };
 
 function GraphDraw(title: string, yAxisTitle: string, graphLines: GraphLine[]) {
-  const xTickInterval = lcd(
-    graphLines.map((graphLine) => lcd(graphLine.xyList.map((xy) => xy.x)))
+  const xTickInterval = gcd(
+    graphLines.map((graphLine) => gcd(graphLine.xyList.map((xy) => xy.x)))
   );
   const seriesBunch = graphLines.map((graphLine) => {
     const series = {
