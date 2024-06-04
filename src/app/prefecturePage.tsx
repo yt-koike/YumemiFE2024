@@ -4,6 +4,7 @@ import HighchartsReact from "highcharts-react-official";
 import { Prefecture, pop, PopulationRecord, prefecturesData } from "./prefData";
 
 function gcd2(a: number, b: number): number {
+  // a と b の最大公倍数(Greatest Common Divisor)を返す
   if (a == 0 || b == 0) return 1;
   if (a < 0) a = -a;
   if (b < 0) b = -b;
@@ -17,6 +18,8 @@ function gcd2(a: number, b: number): number {
 }
 
 function gcd(xs: number[]): number {
+  // xs 内全ての整数に関する最大公倍数(Greatest Common Divisor)を返す
+  // 空配列なら 1 を返す
   if (xs.length == 0) return 1;
   if (xs.length == 1) return xs[0];
   if (xs.length == 2) return gcd2(xs[0], xs[1]);
@@ -24,11 +27,13 @@ function gcd(xs: number[]): number {
 }
 
 type GraphLine = {
+  // 折れ線グラフの描画に必要な情報
   name: string;
   xyList: { x: number; y: number }[];
 };
 
 function GraphDraw(title: string, yAxisTitle: string, graphLines: GraphLine[]) {
+  // 折れ線グラフを描画する
   const xTickInterval = gcd(
     graphLines.map((graphLine) => gcd(graphLine.xyList.map((xy) => xy.x)))
   );
@@ -57,6 +62,7 @@ function GraphDraw(title: string, yAxisTitle: string, graphLines: GraphLine[]) {
 }
 
 async function fetchPopulation(apiKey: string, prefCode: number) {
+  // 人口データを取得する
   const response = await fetch(
     "https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?cityCode=-&prefCode=" +
       prefCode.toString(),
@@ -67,6 +73,8 @@ async function fetchPopulation(apiKey: string, prefCode: number) {
 }
 
 function widthTable(w: number, items: JSX.Element[]): JSX.Element[] {
+  // 列が w 個ある表内に items を並べる
+  // 並べ順: 1 行目を左から埋めていき，w 個並べたら次の行に進む
   const h = Math.ceil(items.length / w);
   const li = [];
   var key = 0;
@@ -104,6 +112,7 @@ export function PrefecturePage() {
   }
 
   useEffect(() => {
+    // 都道府県名を取得
     if (apiKey === "") {
       setPrefectures(prefecturesData);
       setPopRecord(pop);
@@ -128,8 +137,10 @@ export function PrefecturePage() {
   }, [apiKey]);
 
   useEffect(() => {
+    // チェックボックスを全て非選択状態
     setChecked(prefectures.map((_) => false));
-    const newPopRecords= Array<PopulationRecord>(prefectures.length);
+    // 人口データを取得する．
+    const newPopRecords = Array<PopulationRecord>(prefectures.length);
     prefectures.map((pref, idx) =>
       fetchPopulation(apiKey, pref.prefCode).then((pop) => {
         newPopRecords[idx] = pop;
