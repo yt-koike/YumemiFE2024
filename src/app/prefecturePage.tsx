@@ -61,6 +61,16 @@ function GraphDraw(title: string, yAxisTitle: string, graphLines: GraphLine[]) {
   return <HighchartsReact highcharts={Highcharts} options={options} />;
 }
 
+async function fetchPrefectures(apiKey: string) {
+  // 人口データを取得する
+  const response = await fetch(
+    "https://opendata.resas-portal.go.jp/api/v1/prefectures",
+    { headers: { "X-API-KEY": apiKey } }
+  );
+  const prefectures = await response.json().then((json) => json.result);
+  return prefectures;
+}
+
 async function fetchPopulation(apiKey: string, prefCode: number) {
   // 人口データを取得する
   const response = await fetch(
@@ -120,14 +130,9 @@ export function PrefecturePage() {
       setIsLoaded(true);
       return;
     }
-    fetch("https://opendata.resas-portal.go.jp/api/v1/prefectures", {
-      headers: {
-        "X-API-KEY": apiKey,
-      },
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        setPrefectures(json.result);
+    fetchPrefectures(apiKey)
+      .then((prefectures) => {
+        setPrefectures(prefectures);
         setIsLoaded(true);
       })
       .catch((e) => {
@@ -149,7 +154,7 @@ export function PrefecturePage() {
     setPopRecord(newPopRecords);
   }, [apiKey, prefectures]);
 
-  if (!isLoaded){
+  if (!isLoaded) {
     return (
       <div>
         <p>
